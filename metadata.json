@@ -1,0 +1,6 @@
+{
+  "name": "KernoVM",
+  "description": "Pure-Kotlin RISC-V (RV32IMA) Linux virtual machine emulator for Android with VT100 serial terminal, per-VM resource limits, SAF image import, and verified preset catalog.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

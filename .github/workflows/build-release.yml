@@ -1,0 +1,146 @@
+name: Build & Release KernoVM APK
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Semantic release version without leading v (e.g. 0.1.0)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Test & Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Resolve Version Metadata
+        id: meta
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VER="${GITHUB_REF#refs/tags/v}"
+            IS_RELEASE="true"
+            IS_PRERELEASE="false"
+            if [[ "$VER" == *-* ]]; then
+              IS_PRERELEASE="true"
+            fi
+          elif [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && -n "${{ inputs.version }}" ]]; then
+            RAW="${{ inputs.version }}"
+            VER="${RAW#v}"
+            IS_RELEASE="true"
+            IS_PRERELEASE="false"
+            if [[ "$VER" == *-* ]]; then
+              IS_PRERELEASE="true"
+            fi
+          else
+            BASE_VER=$(grep -E 'val baseVersionName\s*=' app/build.gradle.kts | sed -E 's/.*"([^"]+)".*/\1/' | head -n 1)
+            BASE_VER="${BASE_VER:-0.1.0}"
+            VER="${BASE_VER}-dev.${GITHUB_RUN_NUMBER}"
+            IS_RELEASE="false"
+            IS_PRERELEASE="true"
+          fi
+          echo "version=${VER}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${VER}" >> "$GITHUB_OUTPUT"
+          echo "is_release=${IS_RELEASE}" >> "$GITHUB_OUTPUT"
+          echo "is_prerelease=${IS_PRERELEASE}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+
+      - name: Prepare Keystores & Environment
+        run: |
+          cp .env.example .env
+
+          if [ ! -f "my-upload-key.jks" ]; then
+            keytool -genkeypair -v \
+              -keystore my-upload-key.jks \
+              -alias upload \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass android \
+              -keypass android \
+              -dname "CN=KernoVM Release, OU=Mobile, O=Iky969, C=ID"
+          fi
+
+          if [ ! -f "debug.keystore" ]; then
+            keytool -genkeypair -v \
+              -keystore debug.keystore \
+              -alias androiddebugkey \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass android \
+              -keypass android \
+              -dname "CN=Android Debug, O=Android, C=US"
+          fi
+
+          chmod +x gradlew
+
+      - name: Run Unit & E2E Tests
+        env:
+          APP_VERSION: ${{ steps.meta.outputs.version }}
+        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
+
+      - name: Build Debug & Release APKs
+        env:
+          APP_VERSION: ${{ steps.meta.outputs.version }}
+          STORE_PASSWORD: android
+          KEY_PASSWORD: android
+        run: ./gradlew assembleDebug assembleRelease --no-daemon --stacktrace
+
+      - name: Prepare Versioned APK Artifacts
+        env:
+          VER: ${{ steps.meta.outputs.version }}
+        run: |
+          mkdir -p dist
+          if [ -f "app/build/outputs/apk/release/app-release.apk" ]; then
+            cp app/build/outputs/apk/release/app-release.apk "dist/KernoVM-v${VER}-release.apk"
+          elif [ -f "app/build/outputs/apk/release/app-release-unsigned.apk" ]; then
+            cp app/build/outputs/apk/release/app-release-unsigned.apk "dist/KernoVM-v${VER}-release.apk"
+          fi
+
+          if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+            cp app/build/outputs/apk/debug/app-debug.apk "dist/KernoVM-v${VER}-debug.apk"
+          fi
+
+          (cd dist && sha256sum *.apk > SHA256SUMS.txt)
+          ls -la dist/
+
+      - name: Upload APKs to Workflow Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: KernoVM-v${{ steps.meta.outputs.version }}-APKs
+          path: dist/*
+
+      - name: Publish Versioned GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: steps.meta.outputs.is_release == 'true'
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: "KernoVM ${{ steps.meta.outputs.tag }}"
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ steps.meta.outputs.is_prerelease == 'true' }}
+          files: dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

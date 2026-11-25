@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">KernoVM</string>
+    <string name="nav_vms">Mesin</string>
+    <string name="nav_console">Konsol</string>
+    <string name="nav_store">Store</string>
+    <string name="nav_storage">Storage</string>
+    <string name="nav_images">Storage</string>
+    <string name="ram_only_notice">RAM-only (initramfs): perubahan di dalam Linux bersifat sementara dan hilang saat Reset atau Power Off.</string>
+    <string name="mmode_notice">Hanya kernel RISC-V M-Mode No-MMU (CONFIG_RISCV_M_MODE=y, CONFIG_MMU=n, CONFIG_RISCV_SBI=n).</string>
+    <string name="fgs_channel_name">Sesi Mesin Virtual Aktif</string>
+    <string name="fgs_channel_desc">Menjaga prosesor virtual RISC-V tetap berjalan saat aplikasi berada di latar belakang.</string>
+    <string name="fgs_action_pause">Jeda</string>
+    <string name="fgs_action_resume">Lanjut</string>
+    <string name="fgs_action_stop">Hentikan</string>
+    <string name="back_dialog_title">VM Sedang Berjalan</string>
+    <string name="back_dialog_body">Pilih tindakan untuk sesi mesin virtual yang sedang aktif sebelum meninggalkan konsol.</string>
+    <string name="action_pause_vm">Jeda VM</string>
+    <string name="action_stop_vm">Hentikan VM</string>
+    <string name="action_cancel">Batal</string>
+</resources>

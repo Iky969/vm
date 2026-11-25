@@ -1,0 +1,31 @@
+KernoVM
+Copyright 2026 Iky969 (https://github.com/Iky969/vm)
+
+This product includes software developed as part of the KernoVM project,
+licensed under the Apache License, Version 2.0 (see LICENSE).
+
+================================================================================
+Third-Party Attribution Notices
+================================================================================
+
+1. mini-rv32ima (Hardware Memory Map & RV32IMA Architectural Inspiration)
+   Repository: https://github.com/cnlohr/mini-rv32ima
+   Copyright (c) 2022 CNLohr (Charles Lohr)
+   License: The MIT License (see THIRD_PARTY_LICENSES.md)
+
+2. JetBrains Mono (Bundled Font: app/src/main/res/font/jetbrains_mono.ttf)
+   Repository: https://github.com/JetBrains/JetBrainsMono
+   Copyright 2020 The JetBrains Mono Project Authors
+   License: SIL Open Font License, Version 1.1 (see THIRD_PARTY_LICENSES.md)
+
+3. IBM Plex Sans (Bundled Font: app/src/main/res/font/ibm_plex_sans.ttf)
+   Repository: https://github.com/IBM/plex
+   Copyright © 2017, 2019 IBM Corp. with Reserved Font Name "Plex"
+   License: SIL Open Font License, Version 1.1 (see THIRD_PARTY_LICENSES.md)
+
+4. Runtime Open-Source Libraries (Apache License, Version 2.0)
+   - AndroidX Jetpack (Activity Compose, Compose BOM/UI/Material3, Core KTX,
+     Lifecycle, Navigation, Room) — Copyright The Android Open Source Project
+   - KotlinX Coroutines — Copyright JetBrains s.r.o. and contributors
+   - OkHttp — Copyright Square, Inc.
+   See THIRD_PARTY_LICENSES.md for exact artifact versions and full license texts.
